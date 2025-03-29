@@ -1,63 +1,20 @@
-import axios from 'axios';
-import * as cheerio from 'cheerio';
-import { promises as fs } from 'fs';
-import { createDirectory, filesCount } from './utils/utils';
-import { downloadPdf } from './utils/pdfProcessor';
-import { saveCataloguesToFile } from './utils/utils';
+import { CatalogScraper } from './CatalogScraper';
+import { createDirectory } from './utils/utils';
+import { Logger } from './utils/logger';
+
+Logger.enable();
 
 const directoryPath: string = './Catalogues';
-
-interface Catalog {
-    name: string;
-    link: string;
-    validity: string;
-}
-
-async function scrapeCatalogs(): Promise<void> {
-    try {
-        const response = await axios.get('https://www.tus.si/aktualno/katalogi-in-revije/', {
-            timeout: 30000
-        });
-        const $ = cheerio.load(response.data);
-        const catalogs: Catalog[] = [];
-
-        $('.catalogues-grid .list-item').each((index, element) => {
-            const catalog: Catalog = {
-                name: $(element).find('h3').text().trim(),
-                link: $(element).find('.pdf').attr('href') || '',
-                validity: $(element).find('p').text().trim()
-            };
-            if (catalog.name && catalog.link && catalog.validity) {
-                catalogs.push(catalog);
-            }
-        });
-
-        const cataloguesObject = { catalogues: catalogs };
-        await saveCataloguesToFile(cataloguesObject, 'catalogues.json');
-
-        console.log(`Total catalogs: ${catalogs.length}`);
-
-        for (const catalog of catalogs) {
-            console.log(`Downloading ${catalog.name} ...`);
-            const filename = `${directoryPath}/${catalog.name}.pdf`;
-            await downloadPdf(catalog.link, filename);
-        }
-
-        const totalPdfFiles = await filesCount(directoryPath);
-        console.log(`Total PDF files downloaded: ${totalPdfFiles} out of ${catalogs.length}`);
-
-    } catch (error) {
-        console.error(`Error:`, error);
-    }
-}
+const catalogUrl: string = 'https://www.tus.si/aktualno/katalogi-in-revije/';
 
 async function main(): Promise<void> {
     try {
         await createDirectory(directoryPath);
-        await scrapeCatalogs();
-        console.log(`Work is done!`);
+        const scraper = new CatalogScraper(catalogUrl, directoryPath);
+        await scraper.scrape();
+        Logger.log(`Work is done!`);
     } catch (error) {
-        console.error(`An error occurred in main():`, error);
+        Logger.error(`An error occurred in main():`, error);
     }
 }
 
