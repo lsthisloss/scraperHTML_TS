@@ -6,8 +6,8 @@ import { Logger } from './utils/logger';
 import { Catalog } from './utils/interfaces';
 
 export class CatalogScraper {
-    private url: string;
-    private directoryPath: string;
+    private _url: string;
+    private _directoryPath: string;
     private _catalogs: Catalog[] = []; 
     set catalogs(catalogs: Catalog[]) {
         this._catalogs = catalogs;
@@ -16,14 +16,14 @@ export class CatalogScraper {
         return this._catalogs;
     }
     get getCatalogsCount(): Number {
-        return this.catalogs.length;
+        return this._catalogs.length;
     }
     get getDirectoryPath(): string {
-        return this.directoryPath;
+        return this._directoryPath;
     }
-    constructor(url: string, directoryPath: string) {
-        this.url = url;
-        this.directoryPath = directoryPath;
+    constructor(_url: string, _directoryPath: string) {
+        this._url = _url;
+        this._directoryPath = _directoryPath;
     }
 
     async scrapeCatalogs(): Promise<void> {
@@ -37,7 +37,7 @@ export class CatalogScraper {
     
     private async fetchCatalogs(): Promise<Catalog[]> {
         try {
-            const response = await axios.get(this.url, { timeout: 30000 });
+            const response = await axios.get(this._url, { timeout: 30000 });
             const html = response.data;
             return this.parseCatalogs(html); 
         } catch (error) {
@@ -68,7 +68,7 @@ export class CatalogScraper {
         for (const catalog of this.catalogs) {
             try {
                 Logger.log(`Downloading ${catalog.name} ...`);
-                const filename = `${this.directoryPath}/${catalog.name}.pdf`;
+                const filename = `${this._directoryPath}/${catalog.name}.pdf`;
                 await downloadPdf(catalog.link, filename);
             } catch (error) {
                 Logger.error(`Failed to download ${catalog.name}:`, error);
@@ -79,7 +79,7 @@ export class CatalogScraper {
     async saveCatalogsToFile(): Promise<void> {
         try {
             const cataloguesJson = JSON.stringify(this.catalogs, null, 2);
-            const filePath = `${this.directoryPath}/catalogs.json`;
+            const filePath = `${this._directoryPath}/catalogs.json`;
             await fs.writeFile(filePath, cataloguesJson); 
         } catch (error) {
             Logger.error(`Failed to save catalogues to file:`, error);
