@@ -3,12 +3,14 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { downloadPdf } from './utils/pdfProcessor';
 import { Logger } from './utils/logger';
-import { Catalog } from './utils/interfaces';
+import { Catalog, IScraper } from './utils/interfaces';
 
-export class CatalogScraper {
+export class CatalogScraper implements IScraper {
+
     private _url: string;
     private _directoryPath: string;
     private _catalogs: Catalog[] = []; 
+    
     set catalogs(catalogs: Catalog[]) {
         this._catalogs = catalogs;
     }
