@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import { Logger } from './logger';
+import { Catalog } from './interfaces'; // Import the Catalog interface
 
 
 export async function createDirectory(path: string): Promise<void> {

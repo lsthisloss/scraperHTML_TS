@@ -8,7 +8,9 @@ export class Logger {
     static disable(): void {
         this.isEnabled = false;
     }
-
+    static isDebugEnabled(): boolean {
+        return this.isEnabled;
+    }
     static log(...args: any[]): void {
         if (this.isEnabled) {
             console.log(...args);

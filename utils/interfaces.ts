@@ -1,15 +1,20 @@
+import { AxiosResponse } from "axios";
+
 export interface Catalog {
     name: string;
     link: string;
     validity: string;
 }
 
-export interface IScraper {
-    catalogs: Catalog[];
-    getCatalogsCount: Number;
-    getDirectoryPath: string;
+export interface IScraper<T> {
+    url: string;
+    html: string;
+    parsedContent: T[];
+    count: Number;
+    directory: string;
 
-    scrapeCatalogs(): Promise<void>;
-    downloadCatalogs(): Promise<void>;
-    saveCatalogsToFile(): Promise<void>;
+    fetchContent(): Promise<void>
+    scrape(): Promise<void>;
+    serialize(): Promise<void>;
+    download(): Promise<void>;
 }
