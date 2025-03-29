@@ -17,15 +17,13 @@ export class CatalogScraper {
 
     async scrape(): Promise<void> {
         try {
-            const catalogs = await this.fetchCatalogs();
+            const html = await this.fetchCatalogs();
+            const catalogs = this.parseCatalogs(html);
+
             await saveCataloguesToFile({ catalogues: catalogs }, 'catalogues.json');
             Logger.log(`Total catalogs: ${catalogs.length}`);
 
-            for (const catalog of catalogs) {
-                Logger.log(`Downloading ${catalog.name} ...`);
-                const filename = `${this.directoryPath}/${catalog.name}.pdf`;
-                await downloadPdf(catalog.link, filename);
-            }
+            await this.downloadCatalogs(catalogs);
 
             const totalPdfFiles = await filesCount(this.directoryPath);
             Logger.log(`Total PDF files downloaded: ${totalPdfFiles} out of ${catalogs.length}`);
@@ -34,27 +32,43 @@ export class CatalogScraper {
         }
     }
 
-    private async fetchCatalogs(): Promise<Catalog[]> {
+    private async fetchCatalogs(): Promise<string> {
         try {
             const response = await axios.get(this.url, { timeout: 30000 });
-            const $ = cheerio.load(response.data);
-            const catalogs: Catalog[] = [];
-
-            $('.catalogues-grid .list-item').each((index, element) => {
-                const catalog: Catalog = {
-                    name: $(element).find('h3').text().trim(),
-                    link: $(element).find('.pdf').attr('href') || '',
-                    validity: $(element).find('p').text().trim(),
-                };
-                if (catalog.name && catalog.link && catalog.validity) {
-                    catalogs.push(catalog);
-                }
-            });
-
-            return catalogs;
+            return response.data; 
         } catch (error) {
             Logger.error(`Error fetching catalogs:`, error);
             throw error;
+        }
+    }
+
+    private parseCatalogs(html: string): Catalog[] {
+        const $ = cheerio.load(html);
+        const catalogs: Catalog[] = [];
+
+        $('.catalogues-grid .list-item').each((index, element) => {
+            const catalog: Catalog = {
+                name: $(element).find('h3').text().trim(),
+                link: $(element).find('.pdf').attr('href') || '',
+                validity: $(element).find('p').text().trim(),
+            };
+            if (catalog.name && catalog.link && catalog.validity) {
+                catalogs.push(catalog);
+            }
+        });
+
+        return catalogs;
+    }
+
+    private async downloadCatalogs(catalogs: Catalog[]): Promise<void> {
+        for (const catalog of catalogs) {
+            try {
+                Logger.log(`Downloading ${catalog.name} ...`);
+                const filename = `${this.directoryPath}/${catalog.name}.pdf`;
+                await downloadPdf(catalog.link, filename);
+            } catch (error) {
+                Logger.error(`Failed to download ${catalog.name}:`, error);
+            }
         }
     }
 }
