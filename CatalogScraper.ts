@@ -2,7 +2,6 @@ import { promises as fs } from 'fs';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { downloadPdf } from './utils/pdfProcessor';
-import { filesCount } from './utils/utils';
 import { Logger } from './utils/logger';
 import { Catalog } from './utils/interfaces';
 
@@ -22,7 +21,6 @@ export class CatalogScraper {
     get getDirectoryPath(): string {
         return this.directoryPath;
     }
-
     constructor(url: string, directoryPath: string) {
         this.url = url;
         this.directoryPath = directoryPath;
@@ -32,7 +30,6 @@ export class CatalogScraper {
         try {
             const catalogs = await this.fetchCatalogs();
             this.catalogs = catalogs;
-
         } catch (error) {
             Logger.error(`Error during scraping:`, error);
         }
@@ -89,5 +86,4 @@ export class CatalogScraper {
             throw error;
         }
     }
-    
 }
