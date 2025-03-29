@@ -9,12 +9,12 @@ import { Catalog } from './utils/interfaces';
 export class CatalogScraper {
     private url: string;
     private directoryPath: string;
-    private catalogs: Catalog[] = []; 
-    private set setCatalogs(catalogs: Catalog[]) {
-        this.catalogs = catalogs;
+    private _catalogs: Catalog[] = []; 
+    set catalogs(catalogs: Catalog[]) {
+        this._catalogs = catalogs;
     }
-    get getCatalogs(): Catalog[] {
-        return this.catalogs;
+    get catalogs(): Catalog[] {
+        return this._catalogs;
     }
     get getCatalogsCount(): Number {
         return this.catalogs.length;
@@ -31,7 +31,7 @@ export class CatalogScraper {
     async scrapeCatalogs(): Promise<void> {
         try {
             const catalogs = await this.fetchCatalogs();
-            this.setCatalogs = catalogs;
+            this.catalogs = catalogs;
 
         } catch (error) {
             Logger.error(`Error during scraping:`, error);
@@ -68,7 +68,7 @@ export class CatalogScraper {
     }
 
     async downloadCatalogs(): Promise<void> {
-        for (const catalog of this.getCatalogs) {
+        for (const catalog of this.catalogs) {
             try {
                 Logger.log(`Downloading ${catalog.name} ...`);
                 const filename = `${this.directoryPath}/${catalog.name}.pdf`;
@@ -81,7 +81,7 @@ export class CatalogScraper {
 
     async saveCatalogsToFile(): Promise<void> {
         try {
-            const cataloguesJson = JSON.stringify(this.getCatalogs, null, 2);
+            const cataloguesJson = JSON.stringify(this.catalogs, null, 2);
             const filePath = `${this.directoryPath}/catalogs.json`;
             await fs.writeFile(filePath, cataloguesJson); 
         } catch (error) {
