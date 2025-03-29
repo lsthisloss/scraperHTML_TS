@@ -1,8 +1,9 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { promises as fs } from 'fs';
-import { createDirectory, filesNumber } from './utils/utils';
+import { createDirectory, filesCount } from './utils/utils';
 import { downloadPdf } from './utils/pdfProcessor';
+import { saveCataloguesToFile } from './utils/utils';
 
 const directoryPath: string = './Catalogues';
 
@@ -32,9 +33,8 @@ async function scrapeCatalogs(): Promise<void> {
         });
 
         const cataloguesObject = { catalogues: catalogs };
-        const cataloguesJson = JSON.stringify(cataloguesObject, null, 2);
-        await fs.writeFile('catalogues.json', cataloguesJson);
-        console.log(`Catalogs successfully saved to catalogues.json`);
+        await saveCataloguesToFile(cataloguesObject, 'catalogues.json');
+
         console.log(`Total catalogs: ${catalogs.length}`);
 
         for (const catalog of catalogs) {
@@ -43,7 +43,7 @@ async function scrapeCatalogs(): Promise<void> {
             await downloadPdf(catalog.link, filename);
         }
 
-        const totalPdfFiles = await filesNumber(directoryPath);
+        const totalPdfFiles = await filesCount(directoryPath);
         console.log(`Total PDF files downloaded: ${totalPdfFiles} out of ${catalogs.length}`);
 
     } catch (error) {

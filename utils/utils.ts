@@ -8,7 +8,7 @@ export async function createDirectory(path: string): Promise<void> {
     }
 }
 
-export async function filesNumber(directoryPath: string): Promise<number> {
+export async function filesCount(directoryPath: string): Promise<number> {
     try {
         const files = await fs.readdir(directoryPath);
         const pdfFiles = files.filter(file => file.endsWith('.pdf'));
@@ -16,5 +16,16 @@ export async function filesNumber(directoryPath: string): Promise<number> {
     } catch (error: any) {
         console.error(`Failed to read directory: ${error.message}`);
         return 0;
+    }
+}
+
+export async function saveCataloguesToFile(catalogues: object, filePath: string): Promise<void> {
+    try {
+        const cataloguesJson = JSON.stringify(catalogues, null, 2);
+        await fs.writeFile(filePath, cataloguesJson);
+        console.log(`Catalogs successfully saved to ${filePath}`);
+    } catch (error) {
+        console.error(`Failed to save catalogues to file:`, error);
+        throw error;
     }
 }
