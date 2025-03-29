@@ -2,7 +2,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { promises as fs } from 'fs';
 import { createDirectory, filesNumber } from './utils/utils';
-import { downloadPdf } from './utils/pdfDownloader';
+import { downloadPdf } from './utils/pdfProcessor';
 
 const directoryPath: string = './Catalogues';
 
