@@ -21,13 +21,3 @@ export async function filesCount(directoryPath: string): Promise<number> {
     }
 }
 
-export async function saveCataloguesToFile(catalogues: object, filePath: string): Promise<void> {
-    try {
-        const cataloguesJson = JSON.stringify(catalogues, null, 2);
-        await fs.writeFile(filePath, cataloguesJson);
-        Logger.log(`Catalogs successfully saved to ${filePath}`);
-    } catch (error) {
-        Logger.error(`Failed to save catalogues to file:`, error);
-        throw error;
-    }
-}

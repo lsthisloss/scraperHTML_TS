@@ -1,6 +1,6 @@
+import { promises as fs } from 'fs';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { saveCataloguesToFile } from './utils/utils';
 import { downloadPdf } from './utils/pdfProcessor';
 import { filesCount } from './utils/utils';
 import { Logger } from './utils/logger';
@@ -9,33 +9,40 @@ import { Catalog } from './utils/interfaces';
 export class CatalogScraper {
     private url: string;
     private directoryPath: string;
+    private catalogs: Catalog[] = []; 
+    private set setCatalogs(catalogs: Catalog[]) {
+        this.catalogs = catalogs;
+    }
+    private get getCatalogs(): Catalog[] {
+        return this.catalogs;
+    }
+    get getCatalogsCount(): Number {
+        return this.catalogs.length;
+    }
+    get getDirectoryPath(): string {
+        return this.directoryPath;
+    }
 
     constructor(url: string, directoryPath: string) {
         this.url = url;
         this.directoryPath = directoryPath;
     }
 
-    async scrape(): Promise<void> {
+    async scrapeCatalogs(): Promise<void> {
         try {
-            const html = await this.fetchCatalogs();
-            const catalogs = this.parseCatalogs(html);
+            const catalogs = await this.fetchCatalogs();
+            this.setCatalogs = catalogs;
 
-            await saveCataloguesToFile({ catalogues: catalogs }, 'catalogues.json');
-            Logger.log(`Total catalogs: ${catalogs.length}`);
-
-            await this.downloadCatalogs(catalogs);
-
-            const totalPdfFiles = await filesCount(this.directoryPath);
-            Logger.log(`Total PDF files downloaded: ${totalPdfFiles} out of ${catalogs.length}`);
         } catch (error) {
             Logger.error(`Error during scraping:`, error);
         }
     }
-
-    private async fetchCatalogs(): Promise<string> {
+    
+    private async fetchCatalogs(): Promise<Catalog[]> {
         try {
             const response = await axios.get(this.url, { timeout: 30000 });
-            return response.data; 
+            const html = response.data;
+            return this.parseCatalogs(html); 
         } catch (error) {
             Logger.error(`Error fetching catalogs:`, error);
             throw error;
@@ -60,8 +67,8 @@ export class CatalogScraper {
         return catalogs;
     }
 
-    private async downloadCatalogs(catalogs: Catalog[]): Promise<void> {
-        for (const catalog of catalogs) {
+    async downloadCatalogs(): Promise<void> {
+        for (const catalog of this.getCatalogs) {
             try {
                 Logger.log(`Downloading ${catalog.name} ...`);
                 const filename = `${this.directoryPath}/${catalog.name}.pdf`;
@@ -71,4 +78,16 @@ export class CatalogScraper {
             }
         }
     }
+
+    async saveCatalogsToFile(): Promise<void> {
+        try {
+            const cataloguesJson = JSON.stringify(this.getCatalogs, null, 2);
+            const filePath = `${this.directoryPath}/catalogs.json`;
+            await fs.writeFile(filePath, cataloguesJson); 
+        } catch (error) {
+            Logger.error(`Failed to save catalogues to file:`, error);
+            throw error;
+        }
+    }
+    
 }
