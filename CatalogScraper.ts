@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs';
-import axios, { Axios, AxiosResponse } from 'axios';
+import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { downloadPdfWithProgress } from './utils/pdfProcessor';
 import { Logger } from './utils/logger';
@@ -76,7 +76,7 @@ export class CatalogScraper implements IScraper<Catalog> {
             throw error;
         }
     }
-    
+
     async download(): Promise<void> {
         for (const catalog of this.parsedContent) {
             try {

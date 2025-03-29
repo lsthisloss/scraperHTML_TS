@@ -1,5 +1,3 @@
-import { AxiosResponse } from "axios";
-
 export interface Catalog {
     name: string;
     link: string;
@@ -10,7 +8,7 @@ export interface IScraper<T> {
     url: string;
     html: string;
     parsedContent: T[];
-    count: Number;
+    count: number;
     directory: string;
 
     fetchContent(): Promise<void>
