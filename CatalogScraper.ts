@@ -13,7 +13,7 @@ export class CatalogScraper {
     private set setCatalogs(catalogs: Catalog[]) {
         this.catalogs = catalogs;
     }
-    private get getCatalogs(): Catalog[] {
+    get getCatalogs(): Catalog[] {
         return this.catalogs;
     }
     get getCatalogsCount(): Number {
