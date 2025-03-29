@@ -47,14 +47,18 @@ async function scrapeCatalogs(): Promise<void> {
         console.log(`Total PDF files downloaded: ${totalPdfFiles} out of ${catalogs.length}`);
 
     } catch (error) {
-        console.error('Error:', error);
+        console.error(`Error:`, error);
     }
 }
 
 async function main(): Promise<void> {
-    await createDirectory(directoryPath);
-    await scrapeCatalogs();
-    console.log('Work is done!');
+    try {
+        await createDirectory(directoryPath);
+        await scrapeCatalogs();
+        console.log(`Work is done!`);
+    } catch (error) {
+        console.error(`An error occurred in main():`, error);
+    }
 }
 
 main();
