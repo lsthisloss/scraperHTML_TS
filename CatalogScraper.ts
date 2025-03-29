@@ -11,37 +11,16 @@ export class CatalogScraper implements IScraper<Catalog> {
     private _catalogs: Catalog[] = [];
     private _html: string = '';
 
-    get url(): string {
-        return this._url;
-    }
+    set url(url: string) { this._url = url; }
+    set directory(directoryPath: string) { this._directoryPath = directoryPath; }
+    set parsedContent(catalogs: Catalog[]) { this._catalogs = catalogs; }
+    set html(html: string) { this._html = html; }
 
-    set url(url: string) {
-        this._url = url;
-    }
-
-    get html(): string {
-        return this._html;
-    }
-
-    set html(html: string) {
-        this._html = html;
-    }
-
-    get parsedContent(): Catalog[] {
-        return this._catalogs;
-    }
-
-    set parsedContent(catalogs: Catalog[]) {
-        this._catalogs = catalogs;
-    }
-
-    get count(): number {
-        return this._catalogs.length;
-    }
-
-    get directory(): string {
-        return this._directoryPath;
-    }
+    get url(): string { return this._url; }
+    get directory(): string { return this._directoryPath; }
+    get parsedContent(): Catalog[] { return this._catalogs; }
+    get html(): string { return this._html; }
+    get counter(): number { return this._catalogs.length; }
 
     constructor(url: string, directoryPath: string) {
         this._url = url;

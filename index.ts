@@ -13,16 +13,16 @@ async function main(): Promise<void> {
         Logger.log(`Starting the scraper...`);
         await Scraper.fetchContent();
         await Scraper.scrape();
-        Logger.log(`Total catalogs found: ${Scraper.count}`);
+        Logger.log(`Total catalogs found: ${Scraper.counter}`);
 
         await Scraper.serialize();
         Logger.log(`Successfully saved to catalogs.json`);
 
         await Scraper.download();
         const totalPdfFiles = await filesCount(directoryPath);
-        Logger.log(`Total PDF files downloaded: ${totalPdfFiles} out of ${Scraper.count}`);
+        Logger.log(`Total PDF files downloaded: ${totalPdfFiles} out of ${Scraper.counter}`);
         
-        if (totalPdfFiles === Scraper.count) {
+        if (totalPdfFiles === Scraper.counter) {
             Logger.log(`Work is done!`);
         }
         else {

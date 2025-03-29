@@ -6,11 +6,10 @@ export interface Catalog {
 
 export interface IScraper<T> {
     url: string;
-    html: string;
-    parsedContent: T[];
-    count: number;
     directory: string;
-
+    parsedContent: T[];
+    html: string;
+    counter: number;
     fetchContent(): Promise<void>
     scrape(): Promise<void>;
     serialize(): Promise<void>;
