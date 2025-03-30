@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { IScraper } from '../interfaces/interfaces';
+import { IScraper } from '../interfaces/IScraper';
 
 export abstract class BaseScraper<T> implements IScraper<T> {
     private _url: string;
@@ -38,6 +38,5 @@ export abstract class BaseScraper<T> implements IScraper<T> {
     abstract fetchContent(): Promise<string>;
     abstract scrape(html: string): Promise<void>;
     abstract serialize(): Promise<void>;
-    abstract download(): Promise<void>;
-    abstract run(): Promise<void>;
+
 }

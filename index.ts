@@ -1,22 +1,32 @@
-import { CatalogScraper } from './engine/CatalogScraper';
-import { Logger } from './utils/logger';
+import { CatalogScraper } from './engine/classes/CatalogScraper';
+import { HttpClient } from './engine/services/HttpClient';
+import { FileManager } from './engine/services/FileManager';
+import { HtmlParser } from './engine/services/HtmlParser';
+import { Logger } from './engine/utils/logger';
 
-const directoryPath: string = './downloads';
-const catalogUrl: string = 'https://www.tus.si/aktualno/katalogi-in-revije/';
-
-/**
- * CatalogScraper:
- * - Implements the ICatalogScraper interface, which defines catalog-specific methods.
- * - Extends the BaseScraper class, inheriting shared functionality.
- */
+const directoryPath = './downloads';
+const catalogUrl = 'https://www.tus.si/aktualno/katalogi-in-revije/';
 
 async function main(): Promise<void> {
     try {
         Logger.enable();
-        const Scraper = new CatalogScraper(catalogUrl, directoryPath, true);
-        await Scraper.run();
+
+        const httpClient = new HttpClient();
+        const fileManager = new FileManager();
+        const htmlParser = new HtmlParser();
+
+        const scraper = new CatalogScraper(
+            catalogUrl,
+            directoryPath,
+            true,
+            httpClient,
+            fileManager,
+            htmlParser
+        );
+
+        await scraper.run();
     } catch (error) {
-        Logger.error(`An error occurred:`, error);
+        Logger.error('An error occurred:', error);
     }
 }
 

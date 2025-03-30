@@ -1,27 +1,54 @@
-import * as cheerio from 'cheerio';
-import { promises as fs } from 'fs';
-import { downloadPdfWithProgress } from './pdfProcessor';
-import { Catalog, ICatalogScraper } from '../interfaces/interfaces';
-import { filesDirectoryCount } from '../utils/utils';
 import { BaseScraper } from './BaseScraper';
-import { createDirectory } from '../utils/utils';
-import axios from 'axios';
+import { IHttpClient } from '../interfaces/IHttpClient';
+import { IFileManager } from '../interfaces/IFileManager';
+import { IHtmlParser } from '../interfaces/IHtmlParser';
+import { ICatalog } from '../interfaces/IScraper';
+import { filesDirectoryCount } from '../utils/utils';
+import { downloadPdfWithProgress } from '../utils/pdfProcessor';
+import * as cheerio from 'cheerio';
 
-export class CatalogScraper extends BaseScraper<Catalog> implements ICatalogScraper {
-    constructor(url: string, directoryPath: string, isDebugEnabled: boolean = true) {
+export class CatalogScraper extends BaseScraper<ICatalog> {
+    private httpClient: IHttpClient;
+    private fileManager: IFileManager;
+    private htmlParser: IHtmlParser<ICatalog>;
+
+    constructor(
+        url: string,
+        directoryPath: string,
+        isDebugEnabled: boolean,
+        httpClient: IHttpClient,
+        fileManager: IFileManager,
+        htmlParser: IHtmlParser<ICatalog>
+    ) {
         super(url, directoryPath, isDebugEnabled);
+        this.httpClient = httpClient;
+        this.fileManager = fileManager;
+        this.htmlParser = htmlParser;
     }
 
     async init(): Promise<void> {
-        try {
-            await createDirectory(this.directory);
-            this.log(`Directory ${this.directory} created successfully.`);
-        } catch (error) {
-            this.error(`Failed to create directory:`, error);
-            throw error;
-        }
+        await this.fileManager.createDirectory(this.directory);
+        this.log(`Directory ${this.directory} created successfully.`);
     }
 
+    async fetchContent(): Promise<string> {
+        const html = await this.httpClient.get(this.url);
+        this.log(`Fetched content from ${this.url}`);
+        return html;
+    }
+
+    async scrape(html: string): Promise<void> {
+        this.content = this.htmlParser.parse(html);
+        this.log(`Total catalogs found: ${this.content.length}`);
+    }
+
+    async serialize(): Promise<void> {
+        const filePath = `${this.directory}/catalogs.json`;
+        const data = JSON.stringify(this.content, null, 2);
+        await this.fileManager.writeFile(filePath, data);
+        this.log(`Successfully saved to ${filePath}`);
+    }
+    
     async run(): Promise<void> {
         try {
             await this.init();
@@ -35,33 +62,12 @@ export class CatalogScraper extends BaseScraper<Catalog> implements ICatalogScra
         }
     }
 
-    async fetchContent(): Promise<string> {
-        try {
-            const response = await axios.get(this.url, { timeout: 30000 });
-            this.log(`Fetched content from ${this.url}`);
-            return response.data;
-        } catch (error) {
-            this.error(`Error fetching content from URL:`, error);
-            throw error;
-        }
-    }
-
-    async scrape(html: string): Promise<void> {
-        try {
-            this.content = this.parseCatalogs(html);
-            this.log(`Total catalogs found: ${this.content.length}`);
-        } catch (error) {
-            this.error(`Error during scraping:`, error);
-            throw error;
-        }
-    }
-
-    parseCatalogs(html: string): Catalog[] {
+    parseCatalogs(html: string): ICatalog[] {
         try {
             const $ = cheerio.load(html);
-            const catalogs: Catalog[] = [];
+            const catalogs: ICatalog[] = [];
             $('.catalogues-grid .list-item').each((index, element) => {
-                const catalog: Catalog = {
+                const catalog: ICatalog = {
                     name: $(element).find('h3').text().trim(),
                     link: $(element).find('.pdf').attr('href') || '',
                     validity: $(element).find('p').text().trim(),
@@ -74,18 +80,6 @@ export class CatalogScraper extends BaseScraper<Catalog> implements ICatalogScra
         } catch (error) {
             this.error(`Error parsing catalogs:`, error);
             return [];
-        }
-    }
-
-    async serialize(): Promise<void> {
-        try {
-            const cataloguesJson = JSON.stringify(this.content, null, 2);
-            const filePath = `${this.directory}/catalogs.json`;
-            await fs.writeFile(filePath, cataloguesJson);
-            this.log(`Successfully saved to catalogs.json`);
-        } catch (error) {
-            this.error(`Failed to save catalogues to file:`, error);
-            throw error;
         }
     }
 

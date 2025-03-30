@@ -1,6 +1,6 @@
 import axios from 'axios';
 import * as fs from 'fs';
-import { Logger } from '../utils/logger';
+import { Logger } from './logger';
 
 export async function downloadPdfWithProgress(url: string, outputPath: string): Promise<void> {
     try {
