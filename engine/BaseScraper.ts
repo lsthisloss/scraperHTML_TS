@@ -1,12 +1,11 @@
 import axios from 'axios';
-import { createDirectory } from '../utils/utils';
 import { IScraper } from '../interfaces/interfaces';
 
 export abstract class BaseScraper<T> implements IScraper<T> {
     private _url: string;
     private _directoryPath: string;
     private _isDebugEnabled: boolean;
-    protected _content: T[] = []; 
+    private _content: T[] = []; 
     private _html: string = '';
     private _counter: number = 0;
 
@@ -34,29 +33,9 @@ export abstract class BaseScraper<T> implements IScraper<T> {
     disableDebug(): void {  this.isDebugEnabled = false; }
     log(...args: any[]): void { if (this.isDebugEnabled) { console.log(...args); } }
     error(...args: any[]): void { if (this.isDebugEnabled) { console.error(...args); }}
-
-
-    async fetchContent(): Promise<string> {
-        try {
-            const response = await axios.get(this.url, { timeout: 30000 });
-            this.log(`Fetched content from ${this.url}`);
-            return response.data;
-        } catch (error) {
-            this.error(`Error fetching content from URL:`, error);
-            throw error;
-        }
-    }
-
-    async init(): Promise<void> {
-        try {
-            await createDirectory(this.directory);
-            this.log(`Directory ${this.directory} created successfully.`);
-        } catch (error) {
-            this.error(`Failed to create directory:`, error);
-            throw error;
-        }
-    }
-
+    
+    abstract init(): Promise<void>;
+    abstract fetchContent(): Promise<string>;
     abstract scrape(html: string): Promise<void>;
     abstract serialize(): Promise<void>;
     abstract download(): Promise<void>;

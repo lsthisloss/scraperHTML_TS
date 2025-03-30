@@ -1,11 +1,51 @@
 import * as cheerio from 'cheerio';
 import { promises as fs } from 'fs';
 import { downloadPdfWithProgress } from './pdfProcessor';
-import { Catalog } from '../interfaces/interfaces';
+import { Catalog, ICatalogScraper } from '../interfaces/interfaces';
 import { filesDirectoryCount } from '../utils/utils';
 import { BaseScraper } from './BaseScraper';
+import { createDirectory } from '../utils/utils';
+import axios from 'axios';
 
-export class CatalogScraper extends BaseScraper<Catalog> {
+export class CatalogScraper extends BaseScraper<Catalog> implements ICatalogScraper {
+    constructor(url: string, directoryPath: string, isDebugEnabled: boolean = true) {
+        super(url, directoryPath, isDebugEnabled);
+    }
+
+    async init(): Promise<void> {
+        try {
+            await createDirectory(this.directory);
+            this.log(`Directory ${this.directory} created successfully.`);
+        } catch (error) {
+            this.error(`Failed to create directory:`, error);
+            throw error;
+        }
+    }
+
+    async run(): Promise<void> {
+        try {
+            await this.init();
+            const html = await this.fetchContent();
+            await this.scrape(html);
+            await this.serialize();
+            await this.download();
+            this.log('Scraping completed successfully!');
+        } catch (error) {
+            this.error('An error occurred during the scraping process:', error);
+        }
+    }
+
+    async fetchContent(): Promise<string> {
+        try {
+            const response = await axios.get(this.url, { timeout: 30000 });
+            this.log(`Fetched content from ${this.url}`);
+            return response.data;
+        } catch (error) {
+            this.error(`Error fetching content from URL:`, error);
+            throw error;
+        }
+    }
+
     async scrape(html: string): Promise<void> {
         try {
             this.content = this.parseCatalogs(html);
@@ -16,7 +56,7 @@ export class CatalogScraper extends BaseScraper<Catalog> {
         }
     }
 
-    private parseCatalogs(html: string): Catalog[] {
+    parseCatalogs(html: string): Catalog[] {
         try {
             const $ = cheerio.load(html);
             const catalogs: Catalog[] = [];
@@ -75,19 +115,6 @@ export class CatalogScraper extends BaseScraper<Catalog> {
             } catch (error) {
                 this.error(`Failed to download ${catalog.name}:`, error);
             }
-        }
-    }
-
-    async run(): Promise<void> {
-        try {
-            await this.init();
-            const html = await this.fetchContent();
-            await this.scrape(html);
-            await this.serialize();
-            await this.download();
-            this.log('Scraping completed successfully!');
-        } catch (error) {
-            this.error('An error occurred during the scraping process:', error);
         }
     }
 }

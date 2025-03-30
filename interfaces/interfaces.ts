@@ -10,13 +10,22 @@ export interface IScraper<T> {
     content: T[];
     html: string;
     counter: number;
-    
     enableDebug(): void;
     disableDebug(): void;
-    run(): Promise<void>;
     init(): Promise<void>;
     fetchContent(): Promise<string>
     scrape(html: string): Promise<void>;
     serialize(): Promise<void>;
     download(): Promise<void>;
+    run(): Promise<void>;
+}
+
+export interface ICatalogScraper extends IScraper<Catalog> {
+    init(): Promise<void>; 
+    fetchContent(): Promise<string>;
+    scrape(html: string): Promise<void>;
+    parseCatalogs(html: string): Catalog[]; 
+    serialize(): Promise<void>; 
+    download(): Promise<void>; 
+    run(): Promise<void>; 
 }

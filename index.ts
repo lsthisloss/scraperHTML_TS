@@ -4,6 +4,12 @@ import { Logger } from './utils/logger';
 const directoryPath: string = './downloads';
 const catalogUrl: string = 'https://www.tus.si/aktualno/katalogi-in-revije/';
 
+/**
+ * CatalogScraper:
+ * - Implements the ICatalogScraper interface, which defines catalog-specific methods.
+ * - Extends the BaseScraper class, inheriting shared functionality.
+ */
+
 async function main(): Promise<void> {
     try {
         Logger.enable();
