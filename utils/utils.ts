@@ -1,7 +1,5 @@
 import { promises as fs } from 'fs';
 import { Logger } from './logger';
-import { Catalog } from './interfaces'; // Import the Catalog interface
-
 
 export async function createDirectory(path: string): Promise<void> {
     try {
@@ -11,10 +9,10 @@ export async function createDirectory(path: string): Promise<void> {
     }
 }
 
-export async function filesCount(directoryPath: string): Promise<number> {
+export async function filesDirectoryCount(directoryPath: string, ext: string): Promise<number> {
     try {
         const files = await fs.readdir(directoryPath);
-        const pdfFiles = files.filter(file => file.endsWith('.pdf'));
+        const pdfFiles = files.filter(file => file.endsWith(ext));
         return pdfFiles.length;
     } catch (error: any) {
         Logger.error(`Failed to read directory: ${error.message}`);
