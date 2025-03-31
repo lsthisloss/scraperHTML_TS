@@ -48,7 +48,6 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
         try {
             await this.init();
             const html = await this.fetchContent();
-            this.log(`Total catalogs found: ${this.content.length}`);
             await this.scrape(html);
             await this.serialize();
             await this.download();
