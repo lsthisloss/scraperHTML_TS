@@ -29,6 +29,5 @@ export async function downloadPdfWithProgress(url: string, outputPath: string): 
         });
     } catch (error) {
         Logger.error(`Failed to download file from ${url}:`, error);
-        throw error;
     }
 }

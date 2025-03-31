@@ -26,23 +26,38 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
     }
 
     async init(): Promise<void> {
-        await this.fileManager.createDirectory(this.directory);
-        this.log(`Directory ${this.directory} created successfully.`);
+        try {
+            await this.fileManager.createDirectory(this.directory);
+            this.log(`Directory ${this.directory} created successfully.`);
+        } catch (error) {
+            this.error(`Failed to initialize directory: ${this.directory}`, error);
+            throw error;
+        }
+    }
+    
+    async serialize(): Promise<void> {
+        try {
+            const filePath = `${this.directory}/catalogs.json`;
+            const data = JSON.stringify(this.content, null, 2);
+            await this.fileManager.writeFile(filePath, data);
+            this.log(`Successfully saved to ${filePath}`);
+        } catch (error) {
+            this.error(`Failed to serialize data to file: ${this.directory}/catalogs.json`, error);
+        }
     }
 
     async fetchContent(): Promise<string> {
+        try {
         const html = await this.httpClient.get(this.url);
-        this.log(`Fetched content from ${this.url}`);
+        this.error(`Fetched content from ${this.url}`);
         return html;
+        }
+        catch (error) {
+            this.error(`Failed to fetch content from ${this.url}`, error);
+            throw error;
+        }
     }
 
-    async serialize(): Promise<void> {
-        const filePath = `${this.directory}/catalogs.json`;
-        const data = JSON.stringify(this.content, null, 2);
-        await this.fileManager.writeFile(filePath, data);
-        this.log(`Successfully saved to ${filePath}`);
-    }
-    
     async run(): Promise<void> {
         try {
             await this.init();
@@ -64,6 +79,7 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
     }
 
     async scrape(html: string): Promise<void> {
+        try {
         const $ = this.htmlParser.parse(html); 
         const catalogs: ICatalog[] = [];
     
@@ -77,6 +93,10 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
         });
         this.content = catalogs; 
         this.log(`Total catalogs found: ${this.content.length}`);
+        } catch (error) {
+            this.error(`Error scraping catalogs:`, error);
+            throw error;    
+        }
     }
 
     async download(): Promise<void> {
@@ -89,7 +109,6 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
             this.log(`No catalogs to download.`);
             return;
         }
-
         for (const catalog of this.content) {
             try {               
                 if (!catalog.link) {
@@ -103,7 +122,7 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
                 const filename = `${this.directory}/${catalog.name}.pdf`;
                 await downloadPdfWithProgress(catalog.link, filename);
             } catch (error) {
-                this.error(`Failed to download ${catalog.name}:`, error);
+                this.log(`Failed to download ${catalog.name}:`, error);
             }
         }
     }

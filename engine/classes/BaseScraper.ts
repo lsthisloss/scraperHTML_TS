@@ -8,6 +8,7 @@ export abstract class BaseScraper<T> implements IScraper<T> {
     private _html: string = '';
 
     constructor(url: string, directoryPath: string, isDebugEnabled: boolean = true) {
+
         this._url = url;
         this._directoryPath = directoryPath;
         this._isDebugEnabled = isDebugEnabled;
@@ -29,5 +30,5 @@ export abstract class BaseScraper<T> implements IScraper<T> {
     enableDebug(): void { this.isDebugEnabled = true;}
     disableDebug(): void {  this.isDebugEnabled = false; }
     log(...args: any[]): void { if (this.isDebugEnabled) { console.log(...args); } }
-    error(...args: any[]): void { if (this.isDebugEnabled) { console.error(...args); }}
+    error(...args: any[]): void { if (this.isDebugEnabled) { console.error(...args); throw this.error; }}
 }
