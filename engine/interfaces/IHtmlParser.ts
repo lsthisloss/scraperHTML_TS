@@ -1,3 +1,3 @@
 export interface IHtmlParser<T> {
-    parse(html: string): T[];
+    parse(html: string): cheerio.Root; 
 }

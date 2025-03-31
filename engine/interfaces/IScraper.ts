@@ -1,10 +1,3 @@
-
-export interface ICatalog {
-    name: string;
-    link: string;
-    validity: string;
-}
-
 export interface IScraper<T> {
     url: string;
     directory: string;
@@ -13,18 +6,4 @@ export interface IScraper<T> {
     counter: number;
     enableDebug(): void;
     disableDebug(): void;
-    init(): Promise<void>;
-    fetchContent(): Promise<string>
-    scrape(html: string): Promise<void>;
-    serialize(): Promise<void>;
-}
-
-export interface ICatalogScraper extends IScraper<ICatalog> {
-    init(): Promise<void>; 
-    fetchContent(): Promise<string>;
-    scrape(html: string): Promise<void>;
-    parseCatalogs(html: string): ICatalog[]; 
-    serialize(): Promise<void>; 
-    download(): Promise<void>; 
-    run(): Promise<void>; 
 }

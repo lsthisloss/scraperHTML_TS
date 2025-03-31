@@ -2,7 +2,7 @@ import { BaseScraper } from './BaseScraper';
 import { IHttpClient } from '../interfaces/IHttpClient';
 import { IFileManager } from '../interfaces/IFileManager';
 import { IHtmlParser } from '../interfaces/IHtmlParser';
-import { ICatalog } from '../interfaces/IScraper';
+import { ICatalog } from '../interfaces/ICatalog';
 import { filesDirectoryCount } from '../utils/utils';
 import { downloadPdfWithProgress } from '../utils/pdfProcessor';
 import * as cheerio from 'cheerio';
@@ -37,11 +37,6 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
         return html;
     }
 
-    async scrape(html: string): Promise<void> {
-        this.content = this.htmlParser.parse(html);
-        this.log(`Total catalogs found: ${this.content.length}`);
-    }
-
     async serialize(): Promise<void> {
         const filePath = `${this.directory}/catalogs.json`;
         const data = JSON.stringify(this.content, null, 2);
@@ -53,6 +48,7 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
         try {
             await this.init();
             const html = await this.fetchContent();
+            this.log(`Total catalogs found: ${this.content.length}`);
             await this.scrape(html);
             await this.serialize();
             await this.download();
@@ -62,25 +58,20 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
         }
     }
 
-    parseCatalogs(html: string): ICatalog[] {
-        try {
-            const $ = cheerio.load(html);
-            const catalogs: ICatalog[] = [];
-            $('.catalogues-grid .list-item').each((index, element) => {
-                const catalog: ICatalog = {
-                    name: $(element).find('h3').text().trim(),
-                    link: $(element).find('.pdf').attr('href') || '',
-                    validity: $(element).find('p').text().trim(),
-                };
-                if (catalog.name && catalog.link && catalog.validity) {
-                    catalogs.push(catalog);
-                }
-            });
-            return catalogs;
-        } catch (error) {
-            this.error(`Error parsing catalogs:`, error);
-            return [];
-        }
+    async scrape(html: string): Promise<void> {
+        const $ = this.htmlParser.parse(html); 
+        const catalogs: ICatalog[] = [];
+    
+        $('.catalogues-grid .list-item').each((index: number, element: cheerio.Element) => {
+            const catalog: ICatalog = {
+                name: $(element).find('h3').text().trim(),
+                link: $(element).find('.pdf').attr('href') || '',
+                validity: $(element).find('p').text().trim(),
+            };
+            catalogs.push(catalog);
+        });
+        this.content = catalogs; 
+        this.log(`Total catalogs found: ${this.content.length}`);
     }
 
     async download(): Promise<void> {

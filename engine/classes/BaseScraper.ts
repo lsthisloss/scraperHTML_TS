@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { IScraper } from '../interfaces/IScraper';
 
 export abstract class BaseScraper<T> implements IScraper<T> {
@@ -33,10 +32,4 @@ export abstract class BaseScraper<T> implements IScraper<T> {
     disableDebug(): void {  this.isDebugEnabled = false; }
     log(...args: any[]): void { if (this.isDebugEnabled) { console.log(...args); } }
     error(...args: any[]): void { if (this.isDebugEnabled) { console.error(...args); }}
-    
-    abstract init(): Promise<void>;
-    abstract fetchContent(): Promise<string>;
-    abstract scrape(html: string): Promise<void>;
-    abstract serialize(): Promise<void>;
-
 }
