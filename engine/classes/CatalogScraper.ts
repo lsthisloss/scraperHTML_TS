@@ -5,7 +5,6 @@ import { IHtmlParser } from '../interfaces/IHtmlParser';
 import { ICatalog } from '../interfaces/ICatalog';
 import { filesDirectoryCount } from '../utils/utils';
 import { downloadPdfWithProgress } from '../utils/pdfProcessor';
-import * as cheerio from 'cheerio';
 
 export class CatalogScraper extends BaseScraper<ICatalog> {
     private httpClient: IHttpClient;
@@ -51,7 +50,14 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
             await this.scrape(html);
             await this.serialize();
             await this.download();
-            this.log('Scraping completed successfully!');
+            const fileCount = await filesDirectoryCount(this.directory, '.pdf');
+            if (fileCount == this.counter) {
+                this.log('Work is done!');
+            }
+            else {
+                this.log('Work is not done!');
+                this.log(`Expected ${this.counter} files, but found ${fileCount}.`);
+            }
         } catch (error) {
             this.error('An error occurred during the scraping process:', error);
         }
