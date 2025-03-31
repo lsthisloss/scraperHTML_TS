@@ -49,7 +49,7 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
     async fetchContent(): Promise<string> {
         try {
         const html = await this.httpClient.get(this.url);
-        this.error(`Fetched content from ${this.url}`);
+        this.log(`Fetched content from ${this.url}`);
         return html;
         }
         catch (error) {

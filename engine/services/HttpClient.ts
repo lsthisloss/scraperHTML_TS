@@ -32,7 +32,6 @@ export class HttpClient implements IHttpClient {
             if (!response.data) {
                 throw new Error('Response data is empty');
             }
-
             return response.data;
         } catch (error) {
             Logger.error(`Failed to fetch data from ${url}:`, error);
