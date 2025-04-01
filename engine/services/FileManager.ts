@@ -20,4 +20,23 @@ export class FileManager implements IFileManager {
             throw error;
         }
     }
+
+    async readFile(path: string): Promise<string> {
+        try {
+            return await fs.readFile(path, 'utf-8');
+        } catch (error) {
+            Logger.error(`Failed to read file at path: ${path}`, error);
+            throw error;
+        }
+    }
+
+    async fileExists(path: string): Promise<boolean> {
+        try {
+            await fs.access(path);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+    
 }

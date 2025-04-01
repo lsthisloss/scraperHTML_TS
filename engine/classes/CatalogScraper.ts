@@ -3,7 +3,6 @@ import { IHttpClient } from '../interfaces/IHttpClient';
 import { IFileManager } from '../interfaces/IFileManager';
 import { IHtmlParser } from '../interfaces/IHtmlParser';
 import { ICatalog } from '../interfaces/ICatalog';
-import { filesDirectoryCount, fileExists } from '../utils/utils';
 import { downloadPdfWithProgress } from '../utils/pdfProcessor';
 import * as path from 'path';
 
@@ -34,17 +33,6 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
             this.error(`Failed to initialize directory: ${this.directory}`, error);
         }
     }
-    
-    async serialize(): Promise<void> {
-        try {
-            const filePath = `${this.directory}/catalogs.json`;
-            const data = JSON.stringify(this.content, null, 2);
-            await this.fileManager.writeFile(filePath, data);
-            this.log(`Successfully saved to ${filePath}`);
-        } catch (error) {
-            this.error(`Failed to serialize data to file: ${this.directory}/catalogs.json`, error);
-        }
-    }
 
     async fetchContent(): Promise<void> {
         try {
@@ -61,16 +49,8 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
             await this.init();
             await this.fetchContent();
             await this.scrape();
-            await this.serialize();
             await this.download();
-            const fileCount = await filesDirectoryCount(this.directory, '.pdf');
-            if (fileCount == this.counter) {
-                this.log('Work is done!');
-            }
-            else {
-                this.log('Work is not done!');
-                this.log(`Expected ${this.counter} files, but found ${fileCount}.`);
-            }
+           
         } catch (error) {
             this.error('An error occurred during the scraping process:', error);
         }
@@ -78,32 +58,54 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
 
     async scrape(): Promise<void> {
         try {
-        const $ = this.htmlParser.parse(this.html); 
-        const catalogs: ICatalog[] = [];
-    
-        $('.catalogues-grid .list-item').each((index: number, element: cheerio.Element) => {
-            const catalog: ICatalog = {
-                name: $(element).find('h3').text().trim(),
-                link: $(element).find('.pdf').attr('href') || '',
-                validity: $(element).find('p').text().trim(),
-            };
-            catalogs.push(catalog);
-        });
-        this.content = catalogs; 
-        this.log(`Total catalogs found: ${this.content.length}`);
+            const $ = this.htmlParser.parse(this.html); 
+            const catalogs: ICatalog[] = [];
+        
+            $('.catalogues-grid .list-item').each((index: number, element: cheerio.Element) => {
+                const catalog: ICatalog = {
+                    name: $(element).find('h3').text().trim(),
+                    link: $(element).find('.pdf').attr('href') || '',
+                    validity: $(element).find('p').text().trim(),
+                    lastParsed: new Date(),
+                };
+                catalogs.push(catalog);
+            });
+            this.content = catalogs; 
+            this.log(`Total catalogs found: ${this.content.length}`);
         } catch (error) {
             this.error(`Error scraping catalogs:`, error);
             throw error;    
         }
     }
 
-    async download(): Promise<void> {
-        if (this.content.length === 0) {
-            this.log(`No catalogs to download.`);
-            return;
+    async serialize(catalog: ICatalog): Promise<void> {
+        const catalogsFilePath = path.join(this.directory, 'catalogs.json');
+
+        try {
+            let existingDataString = await this.fileManager.readFile(catalogsFilePath).catch(() => {
+                this.log(`File ${catalogsFilePath} does not exist. Creating a new one.`);
+                return '[]'; 
+            });
+
+            const existingData = JSON.parse(existingDataString);
+
+            const newEntry = {
+                ...catalog,
+                lastParsed: new Date().toISOString(),
+            };
+
+            const updatedData = [...existingData, newEntry];
+
+            await this.fileManager.writeFile(catalogsFilePath, JSON.stringify(updatedData, null, 2));
+            this.log(`Successfully appended catalog "${catalog.name}" to catalogs.json.`);
+        } catch (error) {
+            this.error(`Failed to serialize catalog "${catalog.name}" to file: ${catalogsFilePath}`, error);
         }
+    }
+
+    async download(): Promise<void> {
         for (const catalog of this.content) {
-            try {               
+            try {
                 if (!catalog.link) {
                     this.log(`No link found for ${catalog.name}`);
                     continue;
@@ -115,18 +117,27 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
                 let filename = `${catalog.name}.pdf`;
                 let filePath = path.join(this.directory, filename);
     
-                while (await fileExists(filePath)) {
-                    const randomSuffix = Math.random().toString(36).substring(5, 10); 
+                while (await this.fileManager.fileExists(filePath)) {
+                    const randomSuffix = Math.random().toString(36).substring(5, 10);
                     filename = `${catalog.name}_${randomSuffix}.pdf`;
                     filePath = path.join(this.directory, filename);
                 }
+                catalog.filename = filename;
     
                 this.log(`Downloading ${filename} ...`);
-                await downloadPdfWithProgress(catalog.link, filePath);
+                await downloadPdfWithProgress(catalog.link, filePath)
+                    .then(async () => {
+                        this.log(`Downloaded ${filename} successfully.`);
+                        await this.serialize(catalog);
+                    })
+                    .catch((error) => {
+                        this.error(`Failed to download ${filename}:`, error);
+                    });
             } catch (error) {
-                this.log(`Failed to download ${catalog.name}:`, error);
+                this.error(`Failed in downloads for catalog "${catalog.name}"`, error);
             }
         }
     }
-    
 }
+
+
