@@ -59,7 +59,9 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
             }
             this.log(`All catalogs have been processed.`);
             this.log(`Downloaded: ${this.counter - this.failedDownloads.length} catalogs successfully.`);
-            this.log(`Failed to download ${this.failedDownloads.length} catalogs.`);            
+            if (this.failedDownloads.length > 0) {
+                this.log(`Failed to download ${this.failedDownloads.length} catalogs.`);
+            }
             this.log(`Scraping process finished.`);
         } catch (error) {
             this.error('An error occurred during the scraping process:', error);
@@ -151,14 +153,6 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
                 this.failedDownloads.push(catalog);
             }
         }
-
-        if (this.failedDownloads.length > 0) {
-            this.log(`Retrying ${this.failedDownloads} failed downloads...`);
-            await this.retry(this.failedDownloads);
-        }
-        const downloadedCount = catalogs.length - this.failedDownloads.length;
-        this.log(`Downloaded ${downloadedCount} catalogs successfully.`);
-        this.log(`Failed to download ${this.failedDownloads.length} catalogs.`);
     }
     
     async retry(failedDownloads: ICatalog[]): Promise<void> {
