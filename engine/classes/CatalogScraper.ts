@@ -52,13 +52,14 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
             await this.init();
             await this.fetchContent();
             await this.scrape();   
+            this.log(`Total catalogs found: ${this.content.length}`);           
             await this.download();
             if (this.failedDownloads.length > 0) {
                 this.log(`Retrying ${this.failedDownloads.length} failed downloads...`);
                 await this.retry(this.failedDownloads);
             }
+            this.log(`Downloaded: ${this.counter - this.failedDownloads.length} catalogs.`);
             this.log(`All catalogs have been processed.`);
-            this.log(`Downloaded: ${this.counter - this.failedDownloads.length} catalogs successfully.`);
             if (this.failedDownloads.length > 0) {
                 this.log(`Failed to download ${this.failedDownloads.length} catalogs.`);
             }
@@ -83,7 +84,6 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
                 catalogs.push(catalog);
             });
             this.content = catalogs; 
-            this.log(`Total catalogs found: ${this.content.length}`);
         } catch (error) {
             this.error(`Error scraping catalogs:`, error);
         }
@@ -94,13 +94,11 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
     
         try {
             const fileExists = await this.fileManager.fileExists(catalogsFilePath);
-            let existingDataString = '[]'; 
-
-            if (fileExists) {
-                existingDataString = await this.fileManager.readFile(catalogsFilePath);
-            } else {
-                this.log(`File ${catalogsFilePath} does not exist. Creating a new one.`);
+            if (!fileExists) {
+                await this.fileManager.writeFile(catalogsFilePath, JSON.stringify([], null, 2));
             }
+
+            let existingDataString = await this.fileManager.readFile(catalogsFilePath);
             const existingData = JSON.parse(existingDataString);
     
             const newEntry = {
@@ -111,14 +109,16 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
             const updatedData = [...existingData, newEntry];
     
             await this.fileManager.writeFile(catalogsFilePath, JSON.stringify(updatedData, null, 2));
-            this.log(`Successfully appended catalog "${catalog.name}" to catalogs.json.`);
         } catch (error) {
             this.error(`Failed to serialize catalog "${catalog.name}" to file: ${catalogsFilePath}`, error);
         }
     }
 
     async download(catalogs: ICatalog[] = this.content): Promise<void> {
-    
+        if (catalogs.length === 0) {
+            this.log('No catalogs to download.');
+            return;
+        }
         for (const catalog of catalogs) {
             try {
                 if (!catalog.link) {
@@ -139,15 +139,9 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
                     filePath = path.join(this.directory, filename);
                 }
                 catalog.filename = filename;
-    
                 this.log(`Downloading ${filename} ...`);
-                await downloadPdfWithProgress(catalog.link, filePath).then(async () => {
-                    this.log(`Downloaded ${filename} successfully.`);
-                    await this.serialize(catalog);
-                }).catch((error) => {
-                    this.error(`Failed to download ${filename}:`, error);
-                    this.failedDownloads.push(catalog);
-                });
+                await downloadPdfWithProgress(catalog.link, filePath)
+                this.serialize(catalog);
             } catch (error) {
                 this.error(`Failed to download catalog "${catalog.name}":`, error);
                 this.failedDownloads.push(catalog);
