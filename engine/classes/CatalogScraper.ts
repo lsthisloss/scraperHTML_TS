@@ -98,11 +98,6 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
     }
 
     async download(): Promise<void> {
-        const fileCount = await filesDirectoryCount(this.directory, `.pdf`);
-        if (fileCount > 0) {
-            this.log(`Found ${fileCount} existing PDF files in the directory.`);
-            return;
-        }
         if (this.content.length === 0) {
             this.log(`No catalogs to download.`);
             return;
