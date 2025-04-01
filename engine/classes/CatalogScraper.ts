@@ -10,7 +10,8 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
     private httpClient: IHttpClient;
     private fileManager: IFileManager;
     private htmlParser: IHtmlParser<ICatalog>;
-
+    private _failedDownloads: ICatalog[] = [];
+    
     constructor(
         url: string,
         directoryPath: string,
@@ -24,6 +25,8 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
         this.fileManager = fileManager;
         this.htmlParser = htmlParser;
     }
+    get failedDownloads(): ICatalog[] { return this._failedDownloads; }
+    set failedDownloads(failedDownloads: ICatalog[]) { this._failedDownloads = failedDownloads; }
 
     async init(): Promise<void> {
         try {
@@ -48,9 +51,16 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
         try {
             await this.init();
             await this.fetchContent();
-            await this.scrape();
+            await this.scrape();   
             await this.download();
-           
+            if (this.failedDownloads.length > 0) {
+                this.log(`Retrying ${this.failedDownloads.length} failed downloads...`);
+                await this.retry(this.failedDownloads);
+            }
+            this.log(`All catalogs have been processed.`);
+            this.log(`Downloaded: ${this.counter - this.failedDownloads.length} catalogs successfully.`);
+            this.log(`Failed to download ${this.failedDownloads.length} catalogs.`);            
+            this.log(`Scraping process finished.`);
         } catch (error) {
             this.error('An error occurred during the scraping process:', error);
         }
@@ -74,28 +84,30 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
             this.log(`Total catalogs found: ${this.content.length}`);
         } catch (error) {
             this.error(`Error scraping catalogs:`, error);
-            throw error;    
         }
     }
 
     async serialize(catalog: ICatalog): Promise<void> {
         const catalogsFilePath = path.join(this.directory, 'catalogs.json');
-
+    
         try {
-            let existingDataString = await this.fileManager.readFile(catalogsFilePath).catch(() => {
+            const fileExists = await this.fileManager.fileExists(catalogsFilePath);
+            let existingDataString = '[]'; 
+
+            if (fileExists) {
+                existingDataString = await this.fileManager.readFile(catalogsFilePath);
+            } else {
                 this.log(`File ${catalogsFilePath} does not exist. Creating a new one.`);
-                return '[]'; 
-            });
-
+            }
             const existingData = JSON.parse(existingDataString);
-
+    
             const newEntry = {
                 ...catalog,
                 lastParsed: new Date().toISOString(),
             };
-
+    
             const updatedData = [...existingData, newEntry];
-
+    
             await this.fileManager.writeFile(catalogsFilePath, JSON.stringify(updatedData, null, 2));
             this.log(`Successfully appended catalog "${catalog.name}" to catalogs.json.`);
         } catch (error) {
@@ -103,11 +115,13 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
         }
     }
 
-    async download(): Promise<void> {
-        for (const catalog of this.content) {
+    async download(catalogs: ICatalog[] = this.content): Promise<void> {
+    
+        for (const catalog of catalogs) {
             try {
                 if (!catalog.link) {
                     this.log(`No link found for ${catalog.name}`);
+                    this.failedDownloads.push(catalog);
                     continue;
                 }
                 if (catalog.link.startsWith('/')) {
@@ -125,18 +139,36 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
                 catalog.filename = filename;
     
                 this.log(`Downloading ${filename} ...`);
-                await downloadPdfWithProgress(catalog.link, filePath)
-                    .then(async () => {
-                        this.log(`Downloaded ${filename} successfully.`);
-                        await this.serialize(catalog);
-                    })
-                    .catch((error) => {
-                        this.error(`Failed to download ${filename}:`, error);
-                    });
+                await downloadPdfWithProgress(catalog.link, filePath).then(async () => {
+                    this.log(`Downloaded ${filename} successfully.`);
+                    await this.serialize(catalog);
+                }).catch((error) => {
+                    this.error(`Failed to download ${filename}:`, error);
+                    this.failedDownloads.push(catalog);
+                });
             } catch (error) {
-                this.error(`Failed in downloads for catalog "${catalog.name}"`, error);
+                this.error(`Failed to download catalog "${catalog.name}":`, error);
+                this.failedDownloads.push(catalog);
             }
         }
+
+        if (this.failedDownloads.length > 0) {
+            this.log(`Retrying ${this.failedDownloads} failed downloads...`);
+            await this.retry(this.failedDownloads);
+        }
+        const downloadedCount = catalogs.length - this.failedDownloads.length;
+        this.log(`Downloaded ${downloadedCount} catalogs successfully.`);
+        this.log(`Failed to download ${this.failedDownloads.length} catalogs.`);
+    }
+    
+    async retry(failedDownloads: ICatalog[]): Promise<void> {
+        if (failedDownloads.length === 0) {
+            this.log('No failed downloads to retry.');
+            return;
+        }
+    
+        this.log(`Retrying download for ${failedDownloads.length} failed catalogs...`);
+        this.download(failedDownloads);
     }
 }
 

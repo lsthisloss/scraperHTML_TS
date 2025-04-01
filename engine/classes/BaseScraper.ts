@@ -30,5 +30,5 @@ export abstract class BaseScraper<T> implements IScraper<T> {
     enableDebug(): void { this._isDebugEnabled = true; }
     disableDebug(): void {  this._isDebugEnabled = false; }
     log(...args: any[]): void { if (this._isDebugEnabled) { console.log(...args); } }
-    error(...args: any[]): void { if (this._isDebugEnabled) { console.error(...args); throw this.error; }}
+    error(message: string, ...error: any[]): void { if (this._isDebugEnabled) { console.error(message, error || ''); throw error[0] || new Error(message); }}
 }

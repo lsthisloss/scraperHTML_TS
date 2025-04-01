@@ -23,8 +23,7 @@ async function main(): Promise<void> {
             fileManager,
             htmlParser
         );
-
-        await scraper.run();
+        scraper.run()
     } catch (error) {
         Logger.error('An error occurred:', error);
     }
