@@ -3,8 +3,9 @@ import { IHttpClient } from '../interfaces/IHttpClient';
 import { IFileManager } from '../interfaces/IFileManager';
 import { IHtmlParser } from '../interfaces/IHtmlParser';
 import { ICatalog } from '../interfaces/ICatalog';
-import { filesDirectoryCount } from '../utils/utils';
+import { filesDirectoryCount, fileExists } from '../utils/utils';
 import { downloadPdfWithProgress } from '../utils/pdfProcessor';
+import * as path from 'path';
 
 export class CatalogScraper extends BaseScraper<ICatalog> {
     private httpClient: IHttpClient;
@@ -118,12 +119,22 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
                 if (catalog.link.startsWith('/')) {
                     catalog.link = `https://www.tus.si${catalog.link}`;
                 }
-                this.log(`Downloading ${catalog.name}.pdf ...`);
-                const filename = `${this.directory}/${catalog.name}.pdf`;
-                await downloadPdfWithProgress(catalog.link, filename);
+    
+                let filename = `${catalog.name}.pdf`;
+                let filePath = path.join(this.directory, filename);
+    
+                while (await fileExists(filePath)) {
+                    const randomSuffix = Math.random().toString(36).substring(5, 10); 
+                    filename = `${catalog.name}_${randomSuffix}.pdf`;
+                    filePath = path.join(this.directory, filename);
+                }
+    
+                this.log(`Downloading ${filename} ...`);
+                await downloadPdfWithProgress(catalog.link, filePath);
             } catch (error) {
                 this.log(`Failed to download ${catalog.name}:`, error);
             }
         }
     }
+    
 }
