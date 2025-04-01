@@ -24,11 +24,11 @@ export abstract class BaseScraper<T> implements IScraper<T> {
     get html(): string { return this._html; }
     get url(): string { return this._url; }
     get directory(): string { return this._directoryPath; }
-    get counter(): number { return this.content.length; }
+    get counter(): number { return this._content.length; }
     get isDebugEnabled(): boolean { return this._isDebugEnabled; }
 
-    enableDebug(): void { this.isDebugEnabled = true;}
-    disableDebug(): void {  this.isDebugEnabled = false; }
-    log(...args: any[]): void { if (this.isDebugEnabled) { console.log(...args); } }
-    error(...args: any[]): void { if (this.isDebugEnabled) { console.error(...args); throw this.error; }}
+    enableDebug(): void { this._isDebugEnabled = true; }
+    disableDebug(): void {  this._isDebugEnabled = false; }
+    log(...args: any[]): void { if (this._isDebugEnabled) { console.log(...args); } }
+    error(...args: any[]): void { if (this._isDebugEnabled) { console.error(...args); throw this.error; }}
 }
