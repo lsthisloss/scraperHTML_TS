@@ -32,7 +32,6 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
             this.log(`Directory ${this.directory} created successfully.`);
         } catch (error) {
             this.error(`Failed to initialize directory: ${this.directory}`, error);
-            throw error;
         }
     }
     
@@ -47,23 +46,21 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
         }
     }
 
-    async fetchContent(): Promise<string> {
+    async fetchContent(): Promise<void> {
         try {
-        const html = await this.httpClient.get(this.url);
+        this.html = await this.httpClient.get(this.url);
         this.log(`Fetched content from ${this.url}`);
-        return html;
         }
         catch (error) {
             this.error(`Failed to fetch content from ${this.url}`, error);
-            throw error;
         }
     }
 
     async run(): Promise<void> {
         try {
             await this.init();
-            const html = await this.fetchContent();
-            await this.scrape(html);
+            await this.fetchContent();
+            await this.scrape();
             await this.serialize();
             await this.download();
             const fileCount = await filesDirectoryCount(this.directory, '.pdf');
@@ -79,9 +76,9 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
         }
     }
 
-    async scrape(html: string): Promise<void> {
+    async scrape(): Promise<void> {
         try {
-        const $ = this.htmlParser.parse(html); 
+        const $ = this.htmlParser.parse(this.html); 
         const catalogs: ICatalog[] = [];
     
         $('.catalogues-grid .list-item').each((index: number, element: cheerio.Element) => {
