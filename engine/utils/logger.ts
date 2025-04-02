@@ -1,24 +1,28 @@
 export class Logger {
-    private static isEnabled: boolean = true;
+    private static debug: boolean = true;
 
     static enable(): void {
-        this.isEnabled = true;
+        this.debug = true;
     }
 
     static disable(): void {
-        this.isEnabled = false;
+        this.debug = false;
     }
     static isDebugEnabled(): boolean {
-        return this.isEnabled;
+        return this.debug;
     }
     static log(...args: any[]): void {
-        if (this.isEnabled) {
+        if (this.debug) {
             console.log(...args);
         }
     }
-    static error(...args: any[]): void {
-        if (this.isEnabled) {
-            console.error(...args);
+    static error(message: string, ...error: any[]): void { 
+        if (this.debug) { 
+            const firstError = error[0] instanceof Error 
+                ? error[0] 
+                : new Error(error[0] ? String(error[0]) : message);
+            console.error(message, firstError);
+            throw firstError;
         }
     }
 }

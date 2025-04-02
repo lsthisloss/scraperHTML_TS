@@ -4,6 +4,5 @@ export interface IScraper<T> {
     content: T[];
     html: string;
     counter: number;
-    enableDebug(): void;
-    disableDebug(): void;
+    debug: boolean;
 }

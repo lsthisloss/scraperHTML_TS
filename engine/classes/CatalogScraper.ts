@@ -7,26 +7,35 @@ import { downloadPdfWithProgress } from '../utils/pdfProcessor';
 import * as path from 'path';
 
 export class CatalogScraper extends BaseScraper<ICatalog> {
-    private httpClient: IHttpClient;
-    private fileManager: IFileManager;
-    private htmlParser: IHtmlParser<ICatalog>;
+    private _httpClient: IHttpClient;
+    private _fileManager: IFileManager;
+    private _htmlParser: IHtmlParser<ICatalog>;
     private _failedDownloads: ICatalog[] = [];
     
+    set httpClient(httpClient: IHttpClient) { this._httpClient = httpClient; }
+    set fileManager(fileManager: IFileManager) { this._fileManager = fileManager; }
+    set htmlParser(htmlParser: IHtmlParser<ICatalog>) { this._htmlParser = htmlParser; }
+    set failedDownloads(failedDownloads: ICatalog[]) { this._failedDownloads = failedDownloads; }
+    
+    get httpClient(): IHttpClient { return this._httpClient; }
+    get fileManager(): IFileManager { return this._fileManager; }
+    get htmlParser(): IHtmlParser<ICatalog> { return this._htmlParser; }
+    get failedDownloads(): ICatalog[] { return this._failedDownloads; }
+
     constructor(
         url: string,
         directoryPath: string,
-        isDebugEnabled: boolean,
+        debug: boolean,
         httpClient: IHttpClient,
         fileManager: IFileManager,
         htmlParser: IHtmlParser<ICatalog>
     ) {
-        super(url, directoryPath, isDebugEnabled);
-        this.httpClient = httpClient;
-        this.fileManager = fileManager;
-        this.htmlParser = htmlParser;
+        super(url, directoryPath, debug);
+        this._httpClient = httpClient;
+        this._fileManager = fileManager;
+        this._htmlParser = htmlParser;
     }
-    get failedDownloads(): ICatalog[] { return this._failedDownloads; }
-    set failedDownloads(failedDownloads: ICatalog[]) { this._failedDownloads = failedDownloads; }
+
 
     async init(): Promise<void> {
         try {
@@ -39,7 +48,7 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
 
     async fetchContent(): Promise<void> {
         try {
-        this.html = await this.httpClient.get(this.url);
+        this.html = await this._httpClient.get(this.url);
         this.log(`Fetched content from ${this.url}`);
         }
         catch (error) {
@@ -71,7 +80,7 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
 
     async scrape(): Promise<void> {
         try {
-            const $ = this.htmlParser.parse(this.html); 
+            const $ = this._htmlParser.parse(this.html); 
             const catalogs: ICatalog[] = [];
         
             $('.catalogues-grid .list-item').each((index: number, element: cheerio.Element) => {
@@ -159,5 +168,3 @@ export class CatalogScraper extends BaseScraper<ICatalog> {
         this.download(failedDownloads);
     }
 }
-
-
