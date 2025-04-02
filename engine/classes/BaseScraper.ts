@@ -24,7 +24,6 @@ export abstract class BaseScraper<T> implements IScraper<T> {
     get html(): string { return this._html; }
     get url(): string { return this._url; }
     get directory(): string { return this._directoryPath; }
-    get counter(): number { return this._content.length; }
     get debug(): boolean { return this._debug; }
 
     log(...args: any[]): void { if (this._debug) { console.log(...args); } }

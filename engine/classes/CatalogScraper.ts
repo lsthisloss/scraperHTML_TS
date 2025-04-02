@@ -25,6 +25,7 @@ export class CatalogScraper extends BaseScraper<ICatalog> implements ICatalogScr
             await this.init();
             await this.fetchContent();
             await this.scrape();
+            this.log(`Found ${this.content.length} catalogs.`);
             await this.downloadCatalog();
 
             if (this._failedDownloads.length > 0) {
@@ -32,7 +33,12 @@ export class CatalogScraper extends BaseScraper<ICatalog> implements ICatalogScr
                 await this.retry(this._failedDownloads);
             }
 
-            this.log(`Scraping process completed successfully.`);
+            if (this._failedDownloads.length > 0) {
+                this.log(`Failed to download ${this._failedDownloads.length} catalogs.`);
+            } else {
+                this.log(`All catalogs downloaded successfully.`);
+            }
+            this.log(`Work is done.`);
         } catch (error) {
             this.error('An error occurred during the scraping process:', error);
         }
