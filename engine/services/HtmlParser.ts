@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio';
-import { IHtmlParser } from '../interfaces/interfaces';
+import { IHtmlParser } from '../interfaces/services.interfaces';
 import { Logger } from '../utils/logger';
 
 export class HtmlParser implements IHtmlParser {

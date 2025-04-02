@@ -1,4 +1,4 @@
-import { ISerializer, IFileManager } from '../interfaces/interfaces';
+import { ISerializer, IFileManager } from '../interfaces/services.interfaces';
 import * as path from 'path';
 import { FileManager } from './FileManager';
 

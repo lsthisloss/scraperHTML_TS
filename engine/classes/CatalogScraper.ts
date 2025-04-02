@@ -1,14 +1,14 @@
 import { BaseScraper } from './BaseScraper';
 import { ICatalogScraper, ICatalog } from '../interfaces/interfaces';
-import { CatalogService } from '../services/CatalogService';
+import { ServiceProvider } from '../services/ServiceProvider';
 
 export class CatalogScraper extends BaseScraper<ICatalog> implements ICatalogScraper {
-    private _catalogService: CatalogService;
+    private _catalogService: ServiceProvider<ICatalog>;
     private _failedDownloads: ICatalog[] = [];
 
     constructor(url: string, directoryPath: string, debug: boolean) {
         super(url, directoryPath, debug);
-        this._catalogService = new CatalogService();
+        this._catalogService = new ServiceProvider();
     }
 
     async init(): Promise<void> {
@@ -107,7 +107,7 @@ export class CatalogScraper extends BaseScraper<ICatalog> implements ICatalogScr
                     outputPath = `${this.directory}/${baseName}_${randomSuffix}.pdf`;
                 }
                 await this._catalogService.downloadFile(catalog.link, outputPath);
-                await this._catalogService.serializeCatalog(catalog, this.directory);
+                await this._catalogService.serializeToFile(catalog, this.directory);
             } catch (error) {
                 this._failedDownloads.push(catalog);
                 this.error(`Failed to download catalog: ${catalog.name}`, error);
