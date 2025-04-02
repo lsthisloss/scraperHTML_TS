@@ -16,4 +16,5 @@ export interface ICatalogScraper extends IScraper<ICatalog> {
     serialize(): Promise<void>; 
     download(): Promise<void>; 
     run(): Promise<void>; 
+    retry(catalogs: ICatalog[]): Promise<void>;
 }
