@@ -49,7 +49,7 @@ export interface ICatalogScraper extends IScraper<ICatalog> {
     retry(catalogs: ICatalog[]): Promise<void>;
 }
 
-export interface CatalogService {
+export interface ICatalogService {
     fetchHtml(url: string): Promise<string>;
     parseHtml(html: string): Promise<cheerio.Root>;
     downloadFile(link: string, outputPath: string): Promise<void>;

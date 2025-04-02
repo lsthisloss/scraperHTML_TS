@@ -1,11 +1,11 @@
-import { IHttpClient, IFileManager, IHtmlParser, ISerializer, ICatalog } from '../interfaces/interfaces';
+import { IHttpClient, IFileManager, IHtmlParser, ISerializer, ICatalog, ICatalogService } from '../interfaces/interfaces';
 import { FileDownloader } from './FileDownloader';
 import { Serializer } from './Serializer';
 import { HtmlParser } from './HtmlParser';
 import { FileManager } from './FileManager';
 import { HttpClient } from './HttpClient';
 
-export class CatalogService implements CatalogService {
+export class CatalogService implements ICatalogService {
     private _httpClient: IHttpClient;
     private _fileManager: IFileManager;
     private _htmlParser: IHtmlParser;
