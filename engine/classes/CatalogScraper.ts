@@ -105,13 +105,16 @@ export class CatalogScraper extends BaseScraper<ICatalog> implements ICatalogScr
     async downloadCatalog(catalogs: ICatalog[] = this.content): Promise<void> {
         for (const catalog of catalogs) {
             try {
-                let outputPath = `${this.directory}/${catalog.name.replace(/\s+/g, '_')}.pdf`;
+                let baseName = catalog.name.replace(/\s+/g, '_');
+                let outputPath = `${this.directory}/${baseName}.pdf`;
 
                 while (await this._catalogService.fileExists(outputPath)) {
                     const randomSuffix = Math.random().toString(36).substring(5, 10);
-                    const baseName = catalog.name.replace(/\s+/g, '_');
-                    outputPath = `${this.directory}/${baseName}_${randomSuffix}.pdf`;
+                    baseName = `${catalog.name.replace(/\s+/g, '_')}_${randomSuffix}`;
+                    outputPath = `${this.directory}/${baseName}.pdf`;
                 }
+                
+                catalog.filename = `${baseName}.pdf`;
                 await this._catalogService.downloadFile(catalog.link, outputPath);
                 await this._catalogService.serializeToFile(catalog, this.directory);
             } catch (error) {
