@@ -1,4 +1,5 @@
-import { ICatalog, IServiceProvider } from '../interfaces/interfaces';
+import { ICatalog } from '../interfaces/interfaces';
+import { IServiceProvider } from '../interfaces/services.interfaces';
 import { IHttpClient, IFileManager, IHtmlParser, ISerializer} from '../interfaces/services.interfaces';
 import { Serializer } from './Serializer';
 import { HtmlParser } from './HtmlParser';

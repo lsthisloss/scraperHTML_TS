@@ -17,3 +17,12 @@ export interface IFileManager {
     fileExists(path: string): Promise<boolean>;
     downloadFile(url: string, outputPath: string): Promise<void>;
 }
+
+export interface IServiceProvider<T> {
+    fetchHtml(url: string): Promise<string>;
+    parseHtml(html: string): Promise<cheerio.Root>;
+    downloadFile(link: string, outputPath: string): Promise<void>;
+    fileExists(filePath: string): Promise<boolean>;
+    serializeToFile(item: T, directory: string): Promise<void>;
+    createDirectory(path: string): Promise<void>;
+}
