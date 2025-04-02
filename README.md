@@ -45,8 +45,9 @@ The structure is displayed in a tree format for clarity.
 │   │   ├── HtmlParser.ts       # Parses HTML content
 │   │   ├── FileManager.ts      # Manages file operations
 │   │   ├── HttpClient.ts       # Handles basic HTTP requests
-│   └── utils/                  # Utility functions and helpers
-│       ├── logger.ts           # Logging utility
+│   ├── utils/                  # Utility functions and helpers
+│   │   ├── logger.ts           # Logging utility
+│   └── index.ts                # Application Entry Point
 ├── package.json                # Project metadata and dependencies
 ├── tsconfig.json               # TypeScript configuration
 └── README.md                   # Project documentation
