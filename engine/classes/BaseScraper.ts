@@ -1,4 +1,4 @@
-import { IScraper } from '../interfaces/IScraper';
+import { IScraper } from '../interfaces/interfaces';
 
 export abstract class BaseScraper<T> implements IScraper<T> {
     private _url: string;

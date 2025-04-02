@@ -4,9 +4,9 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "build": "ts-node index.ts",
-    "start": "ts-node index.ts",
-    "dev": "ts-node index.ts"
+    "build": "ts-node engine/index.ts",
+    "start": "ts-node engine/index.ts",
+    "dev": "ts-node engine/index.ts"
   },
   "keywords": [],
   "author": "",

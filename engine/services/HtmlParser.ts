@@ -1,8 +1,8 @@
 import * as cheerio from 'cheerio';
-import { IHtmlParser } from '../interfaces/IHtmlParser';
+import { IHtmlParser } from '../interfaces/interfaces';
 import { Logger } from '../utils/logger';
 
-export class HtmlParser implements IHtmlParser<cheerio.Root> {
+export class HtmlParser implements IHtmlParser {
     parse(html: string): cheerio.Root {
         try {
         if (!html) {

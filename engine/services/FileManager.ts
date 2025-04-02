@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs';
-import { IFileManager } from '../interfaces/IFileManager';
+import { IFileManager } from '../interfaces/interfaces';
 import { Logger } from '../utils/logger';
 
 export class FileManager implements IFileManager {

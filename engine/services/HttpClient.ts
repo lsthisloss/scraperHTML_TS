@@ -1,6 +1,6 @@
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
-import { IHttpClient } from '../interfaces/IHttpClient';
+import { IHttpClient } from '../interfaces/interfaces';
 import { Logger } from '../utils/logger';
 
 export class HttpClient implements IHttpClient {
