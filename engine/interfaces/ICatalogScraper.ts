@@ -7,7 +7,7 @@ import { IHtmlParser } from "./IHtmlParser";
 export interface ICatalogScraper extends IScraper<ICatalog> {
     httpClient: IHttpClient;
     fileManager: IFileManager;
-    htmlParser: IHtmlParser<ICatalog>;
+    htmlParser: IHtmlParser<cheerio.Root>;
     failedDownloads: ICatalog[];
     init(): Promise<void>; 
     fetchContent(): Promise<string>;
